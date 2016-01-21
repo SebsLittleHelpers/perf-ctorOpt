@@ -9,76 +9,49 @@ import org.scalameter.CurveData
 object Hello extends JSApp {
 
 
-  object InstanceOfBench extends LocalTime {
-    trait A;
-    class B() extends A
-    class C() extends B
-    class D() extends C
-    class E() extends D
-    class F() extends C with Serializable
-    class T() extends B with Cloneable
-
-    def getOneA(rand: Int): A = math.abs(rand) % 6 match {
-      case 0 => new B()
-      case 1 => new C()
-      case 2 => new D()
-      case 3 => new E()
-      case 4 => new F()
-      case 5 => new T()
+  object CtorOptBench extends LocalTime {
+    class A(message: String, id: Int) {
+      override def toString: String = s"$id -> $message"
     }
 
-    def getListOfAs(seed: Int): List[A] = {
-      val random = new scala.util.Random(seed)
-      List.fill(1000000)(random.nextInt).map(getOneA)
+    class B {
+      override def toString: String = "just a B"
     }
 
-    val sampleOfAs = Gen.unit("sample").map(_ => getListOfAs(42)).cached
+    class C(a: A, b: B) {
+      override def toString: String = s"($a, $b)"
+    }
 
-    performance of "isInstanceOf" in {
-      measure method "isInstanceOf[A]" in {
-        using(sampleOfAs) in { list =>
+    def dummyList(): List[(String, Int)] = {
+      List.fill(1000000)(1).map(x => (s"$x", x))
+    }
+
+    val aLotOfElements = Gen.unit("sample").map(_ => dummyList()).cached
+
+    performance of "CtorOpt" in {
+      measure method "new A" in {
+        using(aLotOfElements) in { list =>
           list.foreach {
-            _.isInstanceOf[A]
+            case (str, num) =>
+              new A(str, num).toString
           }
         }
       }
-      
-      measure method "isInstanceOf[B]" in {
-        using(sampleOfAs) in { list =>
+
+      measure method "new B" in {
+        using(aLotOfElements) in { list =>
           list.foreach {
-            _.isInstanceOf[B]
+            case (str, num) =>
+              new B().toString
           }
         }
       }
-      
-      measure method "isInstanceOf[C]" in {
-        using(sampleOfAs) in { list =>
+
+      measure method "new C" in {
+        using(aLotOfElements) in { list =>
           list.foreach {
-            _.isInstanceOf[C]
-          }
-        }
-      }
-      
-      measure method "isInstanceOf[D]" in {
-        using(sampleOfAs) in { list =>
-          list.foreach {
-            _.isInstanceOf[D]
-          }
-        }
-      }
-      
-      measure method "isInstanceOf[E]" in {
-        using(sampleOfAs) in { list =>
-          list.foreach {
-            _.isInstanceOf[E]
-          }
-        }
-      }
-      
-      measure method "isInstanceOf[T]" in {
-        using(sampleOfAs) in { list =>
-          list.foreach {
-            _.isInstanceOf[T]
+            case (str, num) =>
+              new C(new A(str, num), new B()).toString
           }
         }
       }
@@ -132,7 +105,7 @@ object Hello extends JSApp {
   }
 
   def main(): Unit = {
-    InstanceOfBench.main(Array())
+    CtorOptBench.main(Array())
   }
 }
 
