@@ -23,7 +23,7 @@ object Hello extends JSApp {
     }
 
     def dummyList(): List[(String, Int)] = {
-      List.fill(1000000)(1).map(x => (s"$x", x))
+      List.fill(40000)(1).map(x => (s"$x", x))
     }
 
     val aLotOfElements = Gen.unit("sample").map(_ => dummyList()).cached
