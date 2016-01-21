@@ -11,19 +11,16 @@ object Hello extends JSApp {
 
   object CtorOptBench extends LocalTime {
     class A(message: String, id: Int) {
-      override def toString: String = s"$id -> $message"
     }
 
-    class B {
-      override def toString: String = "just a B"
+    class B() {
     }
 
     class C(a: A, b: B) {
-      override def toString: String = s"($a, $b)"
     }
 
     def dummyList(): List[(String, Int)] = {
-      List.fill(40000)(1).map(x => (s"$x", x))
+      List.fill(1000000)(1).map(x => (s"$x", x))
     }
 
     val aLotOfElements = Gen.unit("sample").map(_ => dummyList()).cached
@@ -33,7 +30,7 @@ object Hello extends JSApp {
         using(aLotOfElements) in { list =>
           list.foreach {
             case (str, num) =>
-              new A(str, num).toString
+              new A(str, num)
           }
         }
       }
@@ -42,7 +39,7 @@ object Hello extends JSApp {
         using(aLotOfElements) in { list =>
           list.foreach {
             case (str, num) =>
-              new B().toString
+              new B()
           }
         }
       }
@@ -51,7 +48,7 @@ object Hello extends JSApp {
         using(aLotOfElements) in { list =>
           list.foreach {
             case (str, num) =>
-              new C(new A(str, num), new B()).toString
+              new C(new A(str, num), new B())
           }
         }
       }
